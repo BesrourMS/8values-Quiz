@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>8Values — Premium Edition</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #09090b;
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-highlight: rgba(255, 255, 255, 0.1);
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      --text-main: #ffffff;
+      --text-sec: rgba(255, 255, 255, 0.6); /* Replaces text-muted */
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Animation */
+    .ambient-glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0,0,0,0) 70%);
+      border-radius: 50%;
+      top: -100px;
+      left: -100px;
+      z-index: -1;
+      animation: float 10s ease-in-out infinite alternate;
+    }
+    .ambient-glow.secondary {
+      top: auto;
+      bottom: -100px;
+      left: auto;
+      right: -100px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(0,0,0,0) 70%);
+      animation: float 12s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(30px, 50px); }
+    }
+
+    /* Premium Glass Card */
+    .card-premium {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .card-premium::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    }
+
+    /* Typography Overrides */
+    h1, h2, h3, h5 { font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; }
+    .display-title { font-weight: 800; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    /* Utility Class Replacements */
+    .text-white-50 { color: var(--text-sec) !important; }
+    .text-secondary { color: var(--text-sec) !important; }
+    
+    /* Buttons */
+    .btn-action {
+      border: none;
+      padding: 16px 24px;
+      border-radius: 16px;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      color: white;
+    }
+    
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3); color: white; }
+    
+    .btn-primary-glow { background: var(--primary-gradient); color: white; }
+
+    .btn-option {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      text-align: left;
+      padding: 18px 24px;
+      margin-bottom: 10px;
+      border-radius: 16px;
+      color: var(--text-sec);
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+
+    .btn-option:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.01);
+    }
+    
+    .opt-strongly-agree:hover { border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+    .opt-strongly-disagree:hover { border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
+
+    /* Progress & HUD */
+    .hud-pill {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 16px;
+      border-radius: 99px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+    }
+    
+    .progress-track {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--primary-gradient);
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+    }
+
+    /* Results */
+    .result-badge {
+      font-size: 3rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    
+    #confettiCanvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
+    
+    @media(max-width: 576px) {
+      .card-premium { border-radius: 0; border: none; min-height: 100vh; background: transparent; backdrop-filter: none; }
+      .container { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow secondary"></div>
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="container py-md-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-9 col-xl-8">
+        
+        <div class="card card-premium shadow-lg p-4 p-md-5">
+          
+          <div id="intro" class="text-center py-4">
+            <div class="mb-4">
+              <span class="badge rounded-pill border border-white text-white bg-transparent px-3 py-2">v2.1 Premium</span>
+            </div>
+            <h1 class="display-title display-4 mb-3">8Values Analysis</h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 500px;">
+              Discover your political personality through our high-precision, gamified assessment engine.
+            </p>
+            
+            <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mt-5">
+              <button id="startBtn" class="btn btn-action btn-primary-glow px-5">
+                Start Assessment
+              </button>
+              <button id="restoreBtn" class="btn btn-action btn-outline-light text-white-50" style="background:rgba(255,255,255,0.05)">
+                Resume Session
+              </button>
+            </div>
+          </div>
+
+          <div id="quiz" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <small class="text-uppercase text-white-50 fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">Progress</small>
+                <div class="d-flex align-items-baseline gap-2">
+                  <span id="qIndex" class="h4 mb-0 fw-bold text-white">1</span>
+                  <span class="text-white-50 h6 mb-0">/ <span id="qTotal">0</span></span>
+                </div>
+              </div>
+              
+              <div class="d-flex gap-3">
+                <div class="hud-pill">
+                  <span style="color:#fbbf24">⚡</span> <span id="energy">100</span>%
+                </div>
+                <div class="hud-pill d-none d-sm-inline-flex">
+                  <span style="color:#f472b6">🔥</span> <span id="streak">0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="progress-track mb-5">
+              <div id="progressBar" class="progress-fill" style="width: 0%"></div>
+            </div>
+
+            <div class="py-2 mb-4 text-center">
+              <h3 id="questionText" class="fw-semibold mb-0 text-white" style="min-height: 3.5rem;">Loading...</h3>
+            </div>
+
+            <div id="options" class="d-grid gap-2 mb-4" style="max-width: 600px; margin: 0 auto;">
+              </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-25 mt-4">
+              <button id="backBtn" class="btn btn-link text-white-50 text-decoration-none px-0">← Previous</button>
+              <button id="skipBtn" class="btn btn-link text-white-50 text-decoration-none px-0" style="font-size:0.9rem">Skip Question (-5 Energy)</button>
+            </div>
+          </div>
+
+          <div id="results" class="d-none">
+            <div class="text-center mb-5">
+              <small class="text-uppercase text-success fw-bold letter-spacing-2">Assessment Complete</small>
+              <h2 class="display-5 fw-bold mt-2 text-white">Your Profile</h2>
+              <p class="text-white-50">Based on your responses across 4 axes.</p>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-12 col-md-6">
+                <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                  <div class="text-white-50 small text-uppercase mb-2">Primary Match</div>
+                  <div id="ideologyName" class="result-badge">Unknown</div>
+                  <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="progress flex-grow-1" style="height: 6px; background: rgba(255,255,255,0.1);">
+                      <div id="matchBar" class="progress-bar bg-white" style="width: 0%"></div>
+                    </div>
+                    <span class="small text-white-50"><span id="matchPct">0</span>% Match</span>
+                  </div>
+                  
+                  <div class="d-grid gap-2 mt-4">
+                    <button id="copyBtn" class="btn btn-action btn-outline-secondary btn-sm">Copy Results</button>
+                    <button id="restartBtn" class="btn btn-action btn-primary-glow btn-sm">Retake Assessment</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="p-3 rounded-4 h-100 d-flex align-items-center justify-content-center" style="background: rgba(255,255,255,0.02);">
+                  <canvas id="radarChart" style="max-height: 250px;"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5">
+              <h5 class="mb-4 border-bottom border-secondary border-opacity-25 pb-2 text-white">Detailed Axis Breakdown</h5>
+              <div id="axisBars" class="row g-4"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // --- Data & Constants ---
+  const questions = [
+    { question: "Oppression by corporations is more of a concern than oppression by governments.", effect: { econ: 10, dipl: 0, govt: -5, scty: 0 } },
+    { question: "It is necessary for the government to intervene in the economy to protect consumers.", effect: { econ: 10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "The freer the markets, the freer the people.", effect: { econ: -10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "It is better to maintain a balanced budget than to ensure welfare for all citizens.", effect: { econ: -10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "Publicly-funded research is more beneficial to the people than leaving it to the market.", effect: { econ: 10, dipl: 0, govt: 0, scty: 10 } },
+    { question: "Tariffs on international trade are important to encourage local production.", effect: { econ: 5, dipl: 0, govt: -10, scty: 0 } },
+    { question: "From each according to his ability, to each according to his needs.", effect: { econ: 10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "It would be best if social programs were abolished in favor of private charity.", effect: { econ: -10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "Taxes should be increased on the rich to provide for the poor.", effect: { econ: 10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "Inheritance is a legitimate form of wealth.", effect: { econ: -10, dipl: 0, govt: 0, scty: -5 } },
+    { question: "Basic utilities like roads and electricity should be publicly owned.", effect: { econ: 10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "Government intervention is a threat to the economy.", effect: { econ: -10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "Those with a greater ability to pay should receive better healthcare.", effect: { econ: -10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "Quality education is a right of all people.", effect: { econ: 10, dipl: 0, govt: 0, scty: 5 } },
+    { question: "The means of production should belong to the workers who use them.", effect: { econ: 10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "The United Nations should be abolished.", effect: { econ: 0, dipl: -10, govt: -5, scty: 0 } },
+    { question: "Military action by our nation is often necessary to protect it.", effect: { econ: 0, dipl: -10, govt: -10, scty: 0 } },
+    { question: "I support regional unions, such as the European Union.", effect: { econ: -5, dipl: 10, govt: 10, scty: 5 } },
+    { question: "It is important to maintain our national sovereignty.", effect: { econ: 0, dipl: -10, govt: -5, scty: 0 } },
+    { question: "A united world government would be beneficial to mankind.", effect: { econ: 0, dipl: 10, govt: 0, scty: 0 } },
+    { question: "It is more important to retain peaceful relations than to further our strength.", effect: { econ: 0, dipl: 10, govt: 0, scty: 0 } },
+    { question: "Wars do not need to be justified to other countries.", effect: { econ: 0, dipl: -10, govt: -10, scty: 0 } },
+    { question: "Military spending is a waste of money.", effect: { econ: 0, dipl: 10, govt: 10, scty: 0 } },
+    { question: "International aid is a waste of money.", effect: { econ: -5, dipl: -10, govt: 0, scty: 0 } },
+    { question: "My nation is great.", effect: { econ: 0, dipl: -10, govt: 0, scty: 0 } },
+    { question: "Research should be conducted on an international scale.", effect: { econ: 0, dipl: 10, govt: 0, scty: 10 } },
+    { question: "Governments should be accountable to the international community.", effect: { econ: 0, dipl: 10, govt: 5, scty: 0 } },
+    { question: "Even when protesting an authoritarian government, violence is not acceptable.", effect: { econ: 0, dipl: 5, govt: -5, scty: 0 } },
+    { question: "My religious values should be spread as much as possible.", effect: { econ: 0, dipl: -5, govt: -10, scty: -10 } },
+    { question: "Our nation's values should be spread as much as possible.", effect: { econ: 0, dipl: -10, govt: -5, scty: 0 } },
+    { question: "It is very important to maintain law and order.", effect: { econ: 0, dipl: -5, govt: -10, scty: -5 } },
+    { question: "The general populace makes poor decisions.", effect: { econ: 0, dipl: 0, govt: -10, scty: 0 } },
+    { question: "Physician-assisted suicide should be legal.", effect: { econ: 0, dipl: 0, govt: 10, scty: 0 } },
+    { question: "The sacrifice of some civil liberties is necessary to protect us from acts of terrorism.", effect: { econ: 0, dipl: 0, govt: -10, scty: 0 } },
+    { question: "Government surveillance is necessary in the modern world.", effect: { econ: 0, dipl: 0, govt: -10, scty: 0 } },
+    { question: "The very existence of the state is a threat to our liberty.", effect: { econ: 0, dipl: 0, govt: 10, scty: 0 } },
+    { question: "Regardless of political opinions, it is important to side with your country.", effect: { econ: 0, dipl: -10, govt: -10, scty: -5 } },
+    { question: "All authority should be questioned.", effect: { econ: 0, dipl: 0, govt: 10, scty: 5 } },
+    { question: "A hierarchical state is best.", effect: { econ: 0, dipl: 0, govt: -10, scty: 0 } },
+    { question: "It is important that the government follows the majority opinion, even if it is wrong.", effect: { econ: 0, dipl: 0, govt: 10, scty: 0 } },
+    { question: "The stronger the leadership, the better.", effect: { econ: 0, dipl: -10, govt: -10, scty: 0 } },
+    { question: "Democracy is more than a decision-making process.", effect: { econ: 0, dipl: 0, govt: 10, scty: 0 } },
+    { question: "Environmental regulations are essential.", effect: { econ: 5, dipl: 0, govt: 0, scty: 10 } },
+    { question: "A better world will come from automation, science, and technology.", effect: { econ: 0, dipl: 0, govt: 0, scty: 10 } },
+    { question: "Children should be educated in religious or traditional values.", effect: { econ: 0, dipl: 0, govt: -5, scty: -10 } },
+    { question: "Traditions are of no value on their own.", effect: { econ: 0, dipl: 0, govt: 0, scty: 10 } },
+    { question: "Religion should play a role in government.", effect: { econ: 0, dipl: 0, govt: -10, scty: -10 } },
+    { question: "Churches should be taxed the same way other institutions are taxed.", effect: { econ: 5, dipl: 0, govt: 0, scty: 10 } },
+    { question: "Climate change is currently one of the greatest threats to our way of life.", effect: { econ: 0, dipl: 0, govt: 0, scty: 10 } },
+    { question: "It is important that we work as a united world to combat climate change.", effect: { econ: 0, dipl: 10, govt: 0, scty: 10 } },
+    { question: "Society was better many years ago than it is now.", effect: { econ: 0, dipl: 0, govt: 0, scty: -10 } },
+    { question: "It is important that we maintain the traditions of our past.", effect: { econ: 0, dipl: 0, govt: 0, scty: -10 } },
+    { question: "It is important that we think in the long term, beyond our lifespans.", effect: { econ: 0, dipl: 0, govt: 0, scty: 10 } },
+    { question: "Reason is more important than maintaining our culture.", effect: { econ: 0, dipl: 0, govt: 0, scty: 10 } },
+    { question: "Drug use should be legalized or decriminalized.", effect: { econ: 0, dipl: 0, govt: 10, scty: 2 } },
+    { question: "Same-sex marriage should be legal.", effect: { econ: 0, dipl: 0, govt: 10, scty: 10 } },
+    { question: "No cultures are superior to others.", effect: { econ: 0, dipl: 10, govt: 5, scty: 10 } },
+    { question: "Sex outside marriage is immoral.", effect: { econ: 0, dipl: 0, govt: -5, scty: -10 } },
+    { question: "If we accept migrants at all, it is important that they assimilate into our culture.", effect: { econ: 0, dipl: 0, govt: -5, scty: -10 } },
+    { question: "Abortion should be prohibited in most or all cases.", effect: { econ: 0, dipl: 0, govt: -10, scty: -10 } },
+    { question: "Gun ownership should be prohibited for those without a valid reason.", effect: { econ: 0, dipl: 0, govt: -10, scty: 0 } },
+    { question: "I support single-payer, universal healthcare.", effect: { econ: 10, dipl: 0, govt: 0, scty: 0 } },
+    { question: "Prostitution should be illegal.", effect: { econ: 0, dipl: 0, govt: -10, scty: -10 } },
+    { question: "Maintaining family values is essential.", effect: { econ: 0, dipl: 0, govt: 0, scty: -10 } },
+    { question: "To chase progress at all costs is dangerous.", effect: { econ: 0, dipl: 0, govt: 0, scty: -10 } },
+    { question: "Genetic modification is a force for good, even on humans.", effect: { econ: 0, dipl: 0, govt: 0, scty: 10 } },
+    { question: "We should open our borders to immigration.", effect: { econ: 0, dipl: 10, govt: 10, scty: 0 } },
+    { question: "Governments should be as concerned about foreigners as they are about their own citizens.", effect: { econ: 0, dipl: 10, govt: 0, scty: 0 } },
+    { question: "All people - regardless of factors like culture or sexuality - should be treated equally.", effect: { econ: 10, dipl: 10, govt: 10, scty: 10 } },
+    { question: "It is important that we further my group's goals above all others.", effect: { econ: -10, dipl: -10, govt: -10, scty: -10 } }
+  ];
+
+  const ideologies = [
+    { name: "Anarcho-Communism", stats: { econ: 100, dipl: 50, govt: 100, scty: 90 } },
+    { name: "Libertarian Communism", stats: { econ: 100, dipl: 70, govt: 80, scty: 80 } },
+    { name: "Trotskyism", stats: { econ: 100, dipl: 100, govt: 60, scty: 80 } },
+    { name: "Marxism", stats: { econ: 100, dipl: 70, govt: 40, scty: 80 } },
+    { name: "De Leonism", stats: { econ: 100, dipl: 30, govt: 30, scty: 80 } },
+    { name: "Leninism", stats: { econ: 100, dipl: 40, govt: 20, scty: 70 } },
+    { name: "Stalinism/Maoism", stats: { econ: 100, dipl: 20, govt: 0, scty: 60 } },
+    { name: "Religious Communism", stats: { econ: 100, dipl: 50, govt: 30, scty: 30 } },
+    { name: "State Socialism", stats: { econ: 80, dipl: 30, govt: 30, scty: 70 } },
+    { name: "Theocratic Socialism", stats: { econ: 80, dipl: 50, govt: 30, scty: 20 } },
+    { name: "Religious Socialism", stats: { econ: 80, dipl: 50, govt: 70, scty: 20 } },
+    { name: "Democratic Socialism", stats: { econ: 80, dipl: 50, govt: 50, scty: 80 } },
+    { name: "Revolutionary Socialism", stats: { econ: 80, dipl: 20, govt: 50, scty: 70 } },
+    { name: "Libertarian Socialism", stats: { econ: 80, dipl: 80, govt: 80, scty: 80 } },
+    { name: "Anarcho-Syndicalism", stats: { econ: 80, dipl: 50, govt: 100, scty: 80 } },
+    { name: "Left-Wing Populism", stats: { econ: 60, dipl: 40, govt: 30, scty: 70 } },
+    { name: "Theocratic Distributism", stats: { econ: 60, dipl: 40, govt: 30, scty: 20 } },
+    { name: "Distributism", stats: { econ: 60, dipl: 50, govt: 50, scty: 20 } },
+    { name: "Social Liberalism", stats: { econ: 60, dipl: 60, govt: 60, scty: 80 } },
+    { name: "Christian Democracy", stats: { econ: 60, dipl: 60, govt: 50, scty: 30 } },
+    { name: "Social Democracy", stats: { econ: 60, dipl: 70, govt: 60, scty: 80 } },
+    { name: "Progressivism", stats: { econ: 60, dipl: 80, govt: 60, scty: 100 } },
+    { name: "Anarcho-Mutualism", stats: { econ: 60, dipl: 50, govt: 100, scty: 70 } },
+    { name: "National Totalitarianism", stats: { econ: 50, dipl: 20, govt: 0, scty: 50 } },
+    { name: "Global Totalitarianism", stats: { econ: 50, dipl: 80, govt: 0, scty: 50 } },
+    { name: "Technocracy", stats: { econ: 60, dipl: 60, govt: 20, scty: 70 } },
+    { name: "Centrist", stats: { econ: 50, dipl: 50, govt: 50, scty: 50 } },
+    { name: "Liberalism", stats: { econ: 50, dipl: 60, govt: 60, scty: 60 } },
+    { name: "Religious Anarchism", stats: { econ: 50, dipl: 50, govt: 100, scty: 20 } },
+    { name: "Right-Wing Populism", stats: { econ: 40, dipl: 30, govt: 30, scty: 30 } },
+    { name: "Moderate Conservatism", stats: { econ: 40, dipl: 40, govt: 50, scty: 30 } },
+    { name: "Reactionary", stats: { econ: 40, dipl: 40, govt: 40, scty: 10 } },
+    { name: "Social Libertarianism", stats: { econ: 60, dipl: 70, govt: 80, scty: 70 } },
+    { name: "Libertarianism", stats: { econ: 40, dipl: 60, govt: 80, scty: 60 } },
+    { name: "Anarcho-Egoism", stats: { econ: 40, dipl: 50, govt: 100, scty: 50 } },
+    { name: "Autocracy", stats: { econ: 50, dipl: 20, govt: 20, scty: 50 } },
+    { name: "Fascism", stats: { econ: 40, dipl: 20, govt: 20, scty: 20 } },
+    { name: "Capitalist Fascism", stats: { econ: 20, dipl: 20, govt: 20, scty: 20 } },
+    { name: "Conservatism", stats: { econ: 30, dipl: 40, govt: 40, scty: 20 } },
+    { name: "Neo-Liberalism", stats: { econ: 30, dipl: 30, govt: 50, scty: 60 } },
+    { name: "Classical Liberalism", stats: { econ: 30, dipl: 60, govt: 60, scty: 80 } },
+    { name: "Authoritarian Capitalism", stats: { econ: 20, dipl: 30, govt: 20, scty: 40 } },
+    { name: "State Capitalism", stats: { econ: 20, dipl: 50, govt: 30, scty: 50 } },
+    { name: "Neo-Conservatism", stats: { econ: 20, dipl: 20, govt: 40, scty: 20 } },
+    { name: "Fundamentalism", stats: { econ: 20, dipl: 30, govt: 30, scty: 5 } },
+    { name: "Libertarian Capitalism", stats: { econ: 20, dipl: 50, govt: 80, scty: 60 } },
+    { name: "Market Anarchism", stats: { econ: 20, dipl: 50, govt: 100, scty: 50 } },
+    { name: "Objectivism", stats: { econ: 10, dipl: 50, govt: 90, scty: 40 } },
+    { name: "Totalitarian Capitalism", stats: { econ: 0, dipl: 30, govt: 0, scty: 50 } },
+    { name: "Ultra-Capitalism", stats: { econ: 0, dipl: 40, govt: 50, scty: 50 } },
+    { name: "Anarcho-Capitalism", stats: { econ: 0, dipl: 50, govt: 100, scty: 50 } }
+  ];
+
+  // --- State Variables ---
+  let idx = 0;
+  const total = questions.length;
+  let scores = { econ:0, dipl:0, govt:0, scty:0 };
+  let answers = new Array(total).fill(null);
+  let energy = 100;
+  let streak = 0;
+  let skipsUsed = 0;
+  const maxSkips = 7;
+  
+  // Max score calculation
+  const maxScores = { econ:0, dipl:0, govt:0, scty:0 };
+  questions.forEach(q=>{ 
+    maxScores.econ += Math.abs(q.effect.econ); 
+    maxScores.dipl += Math.abs(q.effect.dipl); 
+    maxScores.govt += Math.abs(q.effect.govt); 
+    maxScores.scty += Math.abs(q.effect.scty); 
+  });
+
+  // DOM Elements
+  const els = {
+    intro: document.getElementById('intro'),
+    quiz: document.getElementById('quiz'),
+    results: document.getElementById('results'),
+    qTotal: document.getElementById('qTotal'),
+    qIndex: document.getElementById('qIndex'),
+    qText: document.getElementById('questionText'),
+    progressBar: document.getElementById('progressBar'),
+    options: document.getElementById('options'),
+    energy: document.getElementById('energy'),
+    streak: document.getElementById('streak')
+  };
+
+  els.qTotal.textContent = total;
+
+  // Render Options Logic
+  function renderOptions(){
+    const opts = [
+      { t: "Strongly Agree", v: 1.0, c: "opt-strongly-agree", i: "👍" },
+      { t: "Agree", v: 0.5, c: "opt-agree", i: "🙂" },
+      { t: "Neutral / Unsure", v: 0.0, c: "opt-neutral", i: "😐" },
+      { t: "Disagree", v: -0.5, c: "opt-disagree", i: "🙁" },
+      { t: "Strongly Disagree", v: -1.0, c: "opt-strongly-disagree", i: "👎" }
+    ];
+
+    els.options.innerHTML = '';
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = `btn btn-option ${opt.c}`;
+      btn.innerHTML = `<span>${opt.t}</span> <span style="opacity:0.6">${opt.i}</span>`;
+      btn.onclick = () => choose(opt.v);
+      els.options.appendChild(btn);
+    });
+  }
+
+  // Quiz Interaction
+  function renderQuestion(){
+    els.qIndex.textContent = idx + 1;
+    els.progressBar.style.width = `${((idx) / total) * 100}%`;
+    els.qText.textContent = questions[idx].question;
+    
+    // Reset animations
+    els.qText.style.animation = 'none';
+    els.qText.offsetHeight; /* trigger reflow */
+    els.qText.style.animation = 'fadeIn 0.5s ease';
+  }
+
+  function choose(mult){
+    const effect = questions[idx].effect;
+    if(answers[idx] !== null){
+      const prev = answers[idx];
+      scores.econ -= prev * effect.econ; 
+      scores.dipl -= prev * effect.dipl; 
+      scores.govt -= prev * effect.govt; 
+      scores.scty -= prev * effect.scty;
+    }
+    answers[idx] = mult;
+    scores.econ += mult * effect.econ; 
+    scores.dipl += mult * effect.dipl; 
+    scores.govt += mult * effect.govt; 
+    scores.scty += mult * effect.scty;
+
+    // Gamification
+    if(Math.abs(mult) >= 0.5){ 
+      streak++; 
+      energy = Math.min(100, energy + 2 + Math.min(5, streak)); 
+    } else { 
+      streak = 0; 
+      energy = Math.max(0, energy - 1); 
+    }
+    energy -= 0.5; // cost per question
+    if(energy < 0) energy = 0;
+
+    els.energy.textContent = Math.round(energy);
+    els.streak.textContent = streak;
+	
+	if (energy <= 0) {
+		finish();
+		return; // Stop processing the rest of the function
+	}
+	
+    if(idx < total - 1){ 
+      idx++; 
+      renderQuestion(); 
+      saveProgress(); 
+    } else { 
+      finish(); 
+    }
+  }
+
+  function finish(){
+    els.progressBar.style.width = '100%';
+    els.quiz.classList.add('d-none');
+    els.results.classList.remove('d-none');
+    els.intro.classList.add('d-none');
+    renderResults();
+    launchConfetti();
+    localStorage.removeItem('quizProgress');
+  }
+
+  function calcScore(score, max){
+    return max === 0 ? 50.0 : ((100 * (max + score)) / (2 * max)).toFixed(1);
+  }
+
+  function renderResults(){
+    const final = {
+      econ: parseFloat(calcScore(scores.econ, maxScores.econ)),
+      dipl: parseFloat(calcScore(scores.dipl, maxScores.dipl)),
+      govt: parseFloat(calcScore(scores.govt, maxScores.govt)),
+      scty: parseFloat(calcScore(scores.scty, maxScores.scty))
+    };
+
+    // Find Match
+    let closest = ideologies[0]; 
+    let minDist = Infinity;
+    ideologies.forEach(ide => {
+      const d = Math.sqrt(
+        Math.pow(ide.stats.econ - final.econ, 2) +
+        Math.pow(ide.stats.dipl - final.dipl, 2) +
+        Math.pow(ide.stats.govt - final.govt, 2) +
+        Math.pow(ide.stats.scty - final.scty, 2)
+      );
+      if(d < minDist){ minDist = d; closest = ide; }
+    });
+    
+    const confidence = Math.max(0, Math.round(100 - (minDist / 2)));
+    
+    document.getElementById('ideologyName').textContent = closest.name;
+    document.getElementById('matchPct').textContent = confidence;
+    document.getElementById('matchBar').style.width = `${confidence}%`;
+
+    // Radar Chart Logic (Fix for destroy() error)
+    const ctx = document.getElementById('radarChart');
+    
+    // Check if chart exists and destroy it safely
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) {
+      existingChart.destroy();
+    }
+    
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = 'Plus Jakarta Sans';
+    
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Economic', 'Diplomatic', 'Civil', 'Societal'],
+        datasets: [{
+          label: 'You',
+          data: [final.econ, final.dipl, final.govt, final.scty],
+          fill: true,
+          backgroundColor: 'rgba(99, 102, 241, 0.2)',
+          borderColor: '#6366f1',
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#6366f1',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#6366f1'
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            angleLines: { color: 'rgba(255,255,255,0.1)' },
+            grid: { color: 'rgba(255,255,255,0.05)' },
+            pointLabels: { color: '#fff', font: { size: 12, weight: 600 } },
+            ticks: { display: false, backdropColor: 'transparent' },
+            suggestedMin: 0,
+            suggestedMax: 100
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // Bars
+    const container = document.getElementById('axisBars');
+    container.innerHTML = '';
+    
+    const axes = [
+      { k: 'econ', l: 'Equality', r: 'Markets', c1: '#f87171', c2: '#4ade80' },
+      { k: 'dipl', l: 'Nation', r: 'World', c1: '#facc15', c2: '#60a5fa' },
+      { k: 'govt', l: 'Liberty', r: 'Authority', c1: '#fb7185', c2: '#818cf8' },
+      { k: 'scty', l: 'Tradition', r: 'Progress', c1: '#a78bfa', c2: '#34d399' }
+    ];
+
+    axes.forEach(ax => {
+      const val = final[ax.k];
+      const col = document.createElement('div'); 
+      col.className = 'col-12 col-md-6';
+      col.innerHTML = `
+        <div class="mb-2 d-flex justify-content-between small text-white-50 fw-bold text-uppercase">
+          <span>${ax.l}</span>
+          <span>${ax.r}</span>
+        </div>
+        <div class="progress" style="height:8px; background:rgba(255,255,255,0.1); border-radius:4px;">
+          <div class="progress-bar" role="progressbar" style="width:${val}%; background: linear-gradient(90deg, ${ax.c1}, ${ax.c2}); border-radius:4px"></div>
+        </div>
+      `;
+      container.appendChild(col);
+    });
+
+    document.getElementById('copyBtn').onclick = () => {
+      const txt = `8Values Result: ${closest.name} (${confidence}%). Econ:${final.econ}, Dipl:${final.dipl}, Govt:${final.govt}, Scty:${final.scty}`;
+      navigator.clipboard.writeText(txt).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const orig = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = orig, 1500);
+      });
+    };
+    
+    document.getElementById('restartBtn').onclick = () => location.reload();
+  }
+
+  // Persistence
+  function saveProgress(){
+    localStorage.setItem('quizProgress', JSON.stringify({ idx, scores, answers, energy, streak }));
+  }
+
+  // Events
+  document.getElementById('startBtn').addEventListener('click', () => {
+    els.intro.classList.add('d-none');
+    els.quiz.classList.remove('d-none');
+    renderOptions();
+    renderQuestion();
+  });
+  
+  document.getElementById('restoreBtn').addEventListener('click', () => {
+    const raw = localStorage.getItem('quizProgress');
+    if(!raw) return alert("No saved session found.");
+    try {
+      const p = JSON.parse(raw);
+      idx=p.idx; scores=p.scores; answers=p.answers; energy=p.energy; streak=p.streak;
+      els.energy.textContent=Math.round(energy); els.streak.textContent=streak;
+      renderOptions();
+      els.intro.classList.add('d-none');
+      els.quiz.classList.remove('d-none');
+      renderQuestion();
+    } catch(e) { console.error(e); }
+  });
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if(idx===0) return;
+    if(answers[idx]!==null){
+      const eff = questions[idx].effect;
+      scores.econ-=answers[idx]*eff.econ; scores.dipl-=answers[idx]*eff.dipl;
+      scores.govt-=answers[idx]*eff.govt; scores.scty-=answers[idx]*eff.scty;
+      answers[idx]=null;
+    }
+    idx--; renderQuestion(); saveProgress();
+  });
+
+	document.getElementById('skipBtn').addEventListener('click', () => {
+		if (skipsUsed >= maxSkips) {
+			alert(`You have used all ${maxSkips} skips.`);
+			return; // Prevent skipping
+		}
+
+		// Skip logic
+		energy = Math.max(0, energy - 5); 
+		els.energy.textContent = Math.round(energy);
+		skipsUsed++; // Increment the skip counter
+		answers[idx] = 0; 
+		idx++; 
+
+		// Check if Energy hits 0 after a costly action
+		if (energy <= 0) {
+			finish();
+			return;
+		}
+
+		if (idx < total) {
+			renderQuestion();
+		} else {
+			finish();
+		}
+		saveProgress();
+	});
+
+  // Confetti
+  function launchConfetti(){
+    const c = document.getElementById('confettiCanvas');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    const ctx = c.getContext('2d');
+    let pieces = [];
+    for(let i=0; i<150; i++){
+      pieces.push({
+        x: Math.random()*c.width, y: Math.random()*-c.height,
+        vx: (Math.random()-0.5)*4, vy: Math.random()*5+2,
+        color: `hsl(${Math.random()*360}, 70%, 50%)`, size: Math.random()*6+3
+      });
+    }
+    function loop(){
+      ctx.clearRect(0,0,c.width,c.height);
+      let active = false;
+      pieces.forEach(p => {
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.y < c.height) active = true;
+        ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      if(active) requestAnimationFrame(loop);
+    }
+    loop();
+  }
+
+  // Keyboard
+  window.addEventListener('keydown', e => {
+    if(!els.quiz.classList.contains('d-none') && ['1','2','3','4','5'].includes(e.key)){
+      const map = {'1':1.0,'2':0.5,'3':0.0,'4':-0.5,'5':-1.0};
+      choose(map[e.key]);
+    }
+  });
+
+  </script>
+</body>
+</html>
